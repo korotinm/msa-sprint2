@@ -4,7 +4,9 @@ import cats.effect.MonadCancelThrow
 import com.hotelio.booking.domain.{Booking, NewBooking}
 import doobie._
 import doobie.implicits._
-import doobie.implicits.javatimedrivernative._ // Instant <-> timestamptz
+// Meta[Instant] для timestamptz — pg-версия (через OffsetDateTime); НЕ doobie.implicits.javatimedrivernative,
+// там getObject(_, Instant.class), который pg-драйвер не поддерживает
+import doobie.postgres.implicits._
 
 trait BookingRepository[F[_]] {
 
