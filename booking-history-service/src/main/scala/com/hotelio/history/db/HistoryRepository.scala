@@ -5,7 +5,8 @@ import cats.syntax.all._
 import com.hotelio.history.domain.BookingHistoryRecord
 import doobie._
 import doobie.implicits._
-import doobie.implicits.javatimedrivernative._ // Instant <-> timestamptz
+// Meta[Instant] для timestamptz — pg-версия (через OffsetDateTime), а не javatimedrivernative
+import doobie.postgres.implicits._
 
 trait HistoryRepository[F[_]] {
 
