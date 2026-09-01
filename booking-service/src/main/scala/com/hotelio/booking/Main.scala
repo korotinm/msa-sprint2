@@ -3,7 +3,12 @@ package com.hotelio.booking
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import cats.syntax.all._
 import com.hotelio.booking.client.MonolithClientHttp4s
-import com.hotelio.booking.config.{DbConfig, KafkaConfig, MonolithConfig, ServerConfig}
+import com.hotelio.booking.config.{
+  DbConfig,
+  KafkaConfig,
+  MonolithConfig,
+  ServerConfig
+}
 import com.hotelio.booking.db.{BookingRepository, Database, Migrations}
 import com.hotelio.booking.kafka.BookingEventProducer
 import com.hotelio.booking.service.BookingService
@@ -17,19 +22,20 @@ import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object Main extends IOApp {
 
-  private implicit val loggerFactory: LoggerFactory[IO] = Slf4jFactory.create[IO]
-  private implicit val logger: Logger[IO]               = loggerFactory.getLogger
+  private implicit val loggerFactory: LoggerFactory[IO] =
+    Slf4jFactory.create[IO]
+  private implicit val logger: Logger[IO] = loggerFactory.getLogger
 
   def run(args: List[String]): IO[ExitCode] =
     for {
-      dbCfg       <- DbConfig.fromEnv[IO]
-      kafkaCfg    <- KafkaConfig.fromEnv[IO]
+      dbCfg <- DbConfig.fromEnv[IO]
+      kafkaCfg <- KafkaConfig.fromEnv[IO]
       monolithCfg <- MonolithConfig.fromEnv[IO]
-      serverCfg   <- ServerConfig.fromEnv[IO]
-      _           <- Migrations.run[IO](dbCfg)
+      serverCfg <- ServerConfig.fromEnv[IO]
+      _ <- Retry[IO, Unit]("flyway")(Migrations.run[IO](dbCfg).void)
       _ <- server(dbCfg, kafkaCfg, monolithCfg, serverCfg).use { _ =>
-             logger.info(s"booking-service: gRPC :${serverCfg.port}") *> IO.never
-           }
+        logger.info(s"booking-service: gRPC :${serverCfg.port}") *> IO.never
+      }
     } yield ExitCode.Success
 
   private def server(
@@ -39,18 +45,18 @@ object Main extends IOApp {
       serverCfg: ServerConfig
   ): Resource[IO, Server] =
     for {
-      xa       <- Database.transactor[IO](dbCfg)
-      _        <- Resource.eval(Database.ping[IO](xa))
+      xa <- Database.transactor[IO](dbCfg)
+      _ <- Resource.eval(Database.ping[IO](xa))
       producer <- BookingEventProducer.resource[IO](kafkaCfg)
       monolith <- MonolithClientHttp4s.resource[IO](monolithCfg)
-      repo    = BookingRepository[IO](xa)
+      repo = BookingRepository[IO](xa)
       service = BookingService[IO](repo, monolith, producer)
-      grpc    = new BookingGrpcService[IO](service)
+      grpc = new BookingGrpcService[IO](service)
       svcDef <- BookingServiceFs2Grpc.bindServiceResource[IO](grpc)
       srv <- NettyServerBuilder
-               .forPort(serverCfg.port)
-               .addService(svcDef)
-               .resource[IO]
-               .evalTap(s => IO.blocking(s.start()))
+        .forPort(serverCfg.port)
+        .addService(svcDef)
+        .resource[IO]
+        .evalTap(s => IO.blocking(s.start()))
     } yield srv
 }

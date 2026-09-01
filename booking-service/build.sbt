@@ -12,8 +12,6 @@ lazy val V = new {
   val fs2Kafka     = "3.6.0"
   val doobie       = "1.0.0-RC5"
   val flyway       = "10.20.1"
-  val munit        = "1.0.3"
-  val munitCE      = "2.0.0"
 }
 
 lazy val root = (project in file("."))
