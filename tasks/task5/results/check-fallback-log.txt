@@ -1,0 +1,3 @@
+ ./check-fallback.sh
+▶️ Testing fallback route...
+pong from service v2

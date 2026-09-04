@@ -1,0 +1,3 @@
+ ./check-feature-flag.sh
+▶️ Проверка Feature Flag (X-Feature-Enabled: true)...
+pong from service v2%

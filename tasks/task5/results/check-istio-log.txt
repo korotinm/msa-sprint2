@@ -1,0 +1,8 @@
+ ./check-istio.sh
+▶️ Проверка установки Istio...
+NAME                                   READY   STATUS    RESTARTS   AGE
+istio-egressgateway-8c5b8476d-l4mj6    1/1     Running   0          122m
+istio-ingressgateway-6f6c74698-g8f4c   1/1     Running   0          122m
+istiod-6bc77f9465-qfckz                1/1     Running   0          122m
+▶️ Проверка Istio инъекции в default namespace...
+"enabled"
