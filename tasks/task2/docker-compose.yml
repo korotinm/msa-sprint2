@@ -2,6 +2,8 @@ version: "3.8"
 
 services:
   monolith:
+    platform: linux/arm64
+    depends_on: [monolith-db]
     build:
       context: ../monolith
       dockerfile: Dockerfile
@@ -31,7 +33,78 @@ services:
     networks:
       - hotelio-net
 
+  booking-service:
+    platform: linux/arm64
+    depends_on: [booking-db, kafka, monolith]
+    build:
+      context: ../..
+      dockerfile: tasks/booking/Dockerfile
+    container_name: booking-service
+    ports:
+      - "9090:9090"
+    networks:
+      - hotelio-net
+    environment:
+      BOOKING_GRPC_PORT: 9090
+      BOOKING_MONOLITH_BASE_URL: http://monolith:8080
+      BOOKING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      BOOKING_KAFKA_TOPIC: booking-events
+      BOOKING_DB_HOST: booking-db
+      BOOKING_DB_PORT: 5432
+      BOOKING_DB_NAME: booking
+      BOOKING_DB_USER: booking
+      BOOKING_DB_PASSWORD: booking
+
+  booking-db:
+    image: postgres:15
+    container_name: booking-db
+    environment:
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: booking
+      POSTGRES_DB: booking
+    ports:
+      - "5433:5432"
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+    networks:
+      - hotelio-net
+
+  booking-history-service:
+    platform: linux/arm64
+    depends_on: [booking-history-db, kafka]
+    build:
+      context: ../..
+      dockerfile: tasks/booking-history/Dockerfile
+    container_name: booking-history-service
+    networks:
+      - hotelio-net
+    environment:
+      HISTORY_DB_HOST: booking-history-db
+      HISTORY_DB_PORT: 5432
+      HISTORY_DB_NAME: booking_history
+      HISTORY_DB_USER: booking_history
+      HISTORY_DB_PASSWORD: booking_history
+      HISTORY_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      HISTORY_KAFKA_TOPIC: booking-events        # тот же топик, куда пишет booking-service
+      HISTORY_KAFKA_GROUP_ID: booking-history-service
+
+
+  booking-history-db:
+    image: postgres:15
+    container_name: booking-history-db
+    environment:
+      POSTGRES_USER: booking_history
+      POSTGRES_PASSWORD: booking_history
+      POSTGRES_DB: booking_history
+    ports:
+      - "5434:5432"
+    volumes:
+      - booking-history-db-data:/var/lib/postgresql/data
+    networks:
+      - hotelio-net
+
   kafka:
+    depends_on: [zookeeper]
     image: confluentinc/cp-kafka:7.2.1
     ports:
       - "9092:9092"
@@ -54,6 +127,8 @@ services:
 
 volumes:
   monolith-db-data:
+  booking-db-data:
+  booking-history-db-data:
 
 networks:
   hotelio-net:

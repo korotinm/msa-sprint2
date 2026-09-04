@@ -1,0 +1,2 @@
+IMAGE                    ID             DISK USAGE   CONTENT SIZE   EXTRA
+booking-service:latest   830dcd2465a2        433MB         89.2MB        

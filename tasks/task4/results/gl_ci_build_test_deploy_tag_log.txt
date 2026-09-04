@@ -1,0 +1,36 @@
+build  starting shell (build)
+build  $ docker build -t "$IMAGE_NAME:$IMAGE_TAG" ./booking-service
+build  finished in 317 ms
+test   starting shell (test)
+test   $ docker rm -f bs-ci-test 2>/dev/null || true
+test   $ docker run -d --name bs-ci-test "$IMAGE_NAME:$IMAGE_TAG"
+test   > d3b24cb753eaf5ae98532c96391e73c976f4161d5fb99f6f9e5db62f77d52b77
+test   $ sleep 2
+test   $ docker exec bs-ci-test curl -sf http://localhost:8080/ping | grep -q pong
+test   $ docker rm -f bs-ci-test
+test   > bs-ci-test
+test   finished in 2.33 s
+deploy starting shell (deploy)
+deploy $ minikube image load "$IMAGE_NAME:$IMAGE_TAG"
+deploy $ helm upgrade --install "$RELEASE" ./helm/booking-service -f "$VALUES"
+deploy > Release "booking-service" has been upgraded. Happy Helming!
+deploy > NAME: booking-service
+deploy > LAST DEPLOYED: Thu Sep  3 16:51:27 2026
+deploy > NAMESPACE: default
+deploy > STATUS: deployed
+deploy > REVISION: 4
+deploy > TEST SUITE: None
+deploy $ kubectl rollout status deployment/"$RELEASE" --timeout=90s
+deploy > deployment "booking-service" successfully rolled out
+deploy finished in 3.14 s
+tag    starting shell (tag)
+tag    $ TAG="deploy-$(date +%Y%m%d-%H%M%S)"
+tag    $ git tag "$TAG"
+tag    $ echo "created tag $TAG"
+tag    > created tag deploy-20260903-165127
+tag    finished in 19 ms
+
+ PASS  build 
+ PASS  test  
+ PASS  deploy
+ PASS  tag   

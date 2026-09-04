@@ -19,12 +19,18 @@ const typeDefs = gql`
 const resolvers = {
   Hotel: {
     __resolveReference: async ({ id }) => {
-      // TODO: Реальный вызов к hotel-сервису или заглушка
+      return {
+          id: id,
+          name: "Hotel " + id,
+          city: "City " + id,
+          stars: 5
+        }
+      ;
     },
   },
   Query: {
     hotelsByIds: async (_, { ids }) => {
-      // TODO: Заглушка или REST-запрос
+      return ids.map(id => ({id: id, name: "Hotel " + id, city: "City " + id, stars: 5}));
     },
   },
 };

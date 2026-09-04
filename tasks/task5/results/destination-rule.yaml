@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: booking-service
+spec:
+  host: booking-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 10
+      #http:
+      #  http1MaxPendingRequests: 5
+      #  maxRequestsPerConnection: 2
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutive5xxErrors: 2 # после 2х ошибок выбрасываем под из пула
+      interval: 1s # период проверки
+      baseEjectionTime: 30s # на 30й сек. исключаем из балансировки
+      maxEjectionPercent: 100 # процент возможно выкинутых подов из балансировки

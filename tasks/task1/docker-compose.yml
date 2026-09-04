@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   monolith:
+    platform: linux/arm64
     build:
       context: ../monolith
       dockerfile: Dockerfile

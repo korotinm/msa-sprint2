@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   apollo-gateway:
+    platform: linux/arm64
     build: ./gateway
     ports:
       - "4000:4000"
@@ -10,11 +11,13 @@ services:
       - hotel-subgraph
 
   booking-subgraph:
+    platform: linux/arm64
     build: ./booking-subgraph
     ports:
       - "4001:4001"
 
   hotel-subgraph:
+    platform: linux/arm64
     build: ./hotel-subgraph
     ports:
       - "4002:4002"
