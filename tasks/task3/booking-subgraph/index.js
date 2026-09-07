@@ -10,6 +10,11 @@ const typeDefs = gql`
     hotelId: String!
     promoCode: String
     discountPercent: Int
+    hotel: Hotel
+  }
+  
+  type Hotel @key(fields: "id") {
+    id: ID!
   }
 
   type Query {
@@ -21,11 +26,31 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     bookingsByUser: async (_, { userId }, { req }) => {
-		// TODO: Реальный вызов к grpc booking-сервису или заглушка + ACL
+        const useridAcl = req.headers['userid'];
+        const allowed = useridAcl === userId
+        console.log(`bookingsByUser: useridAcl=${useridAcl} userId=${userId} --> ${allowed ? 'ALLOW' : 'DENY'}`);
+
+        const caller = req.headers['userid'];
+        if(caller === userId) {
+          return [
+            {
+              id: "b1",
+              userId: userId,
+              hotelId: "h1",
+              promoCode: "SUMMER",
+              discountPercent: 20,
+            },
+          ];
+        } else {
+          return [];
+        }
+
     },
   },
   Booking: {
-	  // TODO: Реальный вызов к grpc booking-сервису или заглушка + ACL
+    hotel: (booking) => {
+      return {id: booking.hotelId}
+    }
   },
 };
 

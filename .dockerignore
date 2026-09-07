@@ -1,0 +1,11 @@
+# Активен, когда build context = корень репозитория (сейчас — только booking-service,
+# см. tasks/booking/Dockerfile). Держим контекст маленьким, чтобы docker build не
+# тянул чужие build-каталоги и кэши.
+.git
+**/target
+**/.bloop
+**/.metals
+**/.bsp
+hotelio-monolith/build
+hotelio-monolith/.gradle
+node_modules

@@ -17,6 +17,14 @@
 ```
 ---
 
+После, скопировать артефакт из `hotelio-monolith/build/libs/hotelio-monolith-1.0.0.jar`.
+
+---
+
+Вставить это jar файл сюда `tasks/monolith`.
+
+---
+
 ## 🚀 Запуск приложения
 
 ```bash
